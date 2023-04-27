@@ -5,7 +5,14 @@ from fastapi.encoders import jsonable_encoder
 from . import models, schemas
 
 
-def create_legal_proceedings(db: Session, legal_proceedings: schemas.LegalProceeding):
+def create_legal_proceedings(db: Session, legal_proceedings: schemas.LegalProceeding) -> list:
+    """
+    Create legal proceedings in the database.
+
+    :param db: database session
+    :param legal_proceedings: list of legal proceedings to create
+    :return: list of created legal proceedings
+    """
     all_process = []
     for process in legal_proceedings:
         date = process.date
@@ -13,15 +20,21 @@ def create_legal_proceedings(db: Session, legal_proceedings: schemas.LegalProcee
         content = process.content
 
         db_process = models.LegalProceeding(date=date,
-                                        title=title,
-                                        content=content)
-        
+                                            title=title,
+                                            content=content)
+
         all_process.append(db_process)
 
     return all_process
 
 
 def create_process_details(db: Session, process_details: schemas.ProcessDetail):
+    """
+    Create a process detail and associated legal proceedings in the database.
+
+    :param db: database session
+    :param process_details: details of the process to create
+    """
     process_num = process_details.process_num
     jurisdictional_unit = process_details.jurisdictional_unit
     action = process_details.action
@@ -29,11 +42,11 @@ def create_process_details(db: Session, process_details: schemas.ProcessDetail):
     defendant = process_details.defendant
 
     db_detail = models.ProcessDetail(process_num=process_num,
-                                   jurisdictional_unit=jurisdictional_unit,
-                                   action=action,
-                                   actors=actors,
-                                   defendant=defendant)
-    
+                                     jurisdictional_unit=jurisdictional_unit,
+                                     action=action,
+                                     actors=actors,
+                                     defendant=defendant)
+
     db.add(db_detail)
 
     proceedings = create_legal_proceedings(db, process_details.legal_proceedings)
@@ -42,8 +55,16 @@ def create_process_details(db: Session, process_details: schemas.ProcessDetail):
     db.commit()
 
 
-def get_process(db: Session, skip: int = 0, limit: int = 100):
-    all_processes = db.query(models.ProcessDetail).offset(skip).limit(limit).all() 
+def get_process(db: Session, skip: int = 0, limit: int = 100) -> list:
+    """
+    Retrieve a list of process details from the database.
+
+    :param db: database session
+    :param skip: number of process details to skip
+    :param limit: maximum number of process details to return
+    :return: list of process details
+    """
+    all_processes = db.query(models.ProcessDetail).offset(skip).limit(limit).all()
 
     json_processes = []
     for process in all_processes:
